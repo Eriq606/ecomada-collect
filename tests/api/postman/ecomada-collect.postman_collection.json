@@ -1,371 +1,3237 @@
 {
-	"info": {
-		"_postman_id": "e4b2a1a1-7424-4b7b-848d-9d51b5c193a2",
-		"name": "EcoMada Collect API - Automatisé",
-		"description": {
-			"content": "Cette collection Postman permet de tester l'API EcoMada Collect de manière exhaustive et automatisée.\n\n**Variables de collection**:\n* `base_url`: L'URL de base de l'API (par défaut: `http://localhost:8090`).\n* `admin_token`, `citoyen_token`, `collecteur_token`, `recycleur_token`: Jetons d'authentification pour chaque rôle, automatiquement remplis par la requête `0. Setup & Authentification`.\n\n**Dossiers**:\n* **0. Setup & Authentification**: Contient la requête pour se connecter en tant que tous les utilisateurs de test et stocker leurs jetons.\n* **1. Rôle : Administrateur**: Requêtes pour les opérations d'administration (CRUD utilisateurs, etc.).\n* **2. Rôle : Citoyen**: Requêtes pour les actions d'un citoyen (faire un dépôt, consulter son impact).\n* **3. Rôle : Collecteur**: Requêtes pour les actions d'un collecteur (ramasser un déchet).\n* **4. Rôle : Recycleur**: Requêtes pour les actions d'un recycleur (valoriser un déchet).",
-			"type": "text/markdown"
-		},
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "0. Setup & Authentification",
-			"description": "Ce dossier contient les requêtes pour initialiser l'environnement de test. La requête `Login All` récupère les jetons pour tous les rôles et les stocke dans les variables de collection.",
-			"item": [
-				{
-					"name": "Login All (Automatisation Totale)",
-					"description": "Cette requête se connecte en tant qu'admin, citoyen, collecteur et recycleur, puis stocke leurs jetons JWT dans les variables de collection correspondantes (`admin_token`, `citoyen_token`, etc.).",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const baseUrl = pm.collectionVariables.get(\"base_url\");",
-									"",
-									"function login(role, email) {",
-									"    pm.sendRequest({",
-									"        url: baseUrl + \"/api/auth/login\",",
-									"        method: 'POST',",
-									"        header: { 'Content-Type': 'application/json' },",
-									"        body: {",
-									"            mode: 'raw',",
-									"            raw: JSON.stringify({ email: email, motDePasse: 'password123' })",
-									"        }",
-									"    }, function (err, res) {",
-									"        if (res.code === 200) {",
-									"            pm.collectionVariables.set(role + \"_token\", res.json().token);",
-									"            console.log(\"Token récupéré pour : \" + role);",
-									"        }",
-									"    });",
-									"}",
-									"",
-									"login(\"admin\", \"admin@ecomada.mg\");",
-									"login(\"citoyen\", \"rakoto@ecomada.mg\");",
-									"login(\"collecteur\", \"collecteur@ecomada.mg\");",
-									"login(\"recycleur\", \"recycleur@ecomada.mg\");",
-									"",
-									"pm.test(\"Setup lancé avec succès\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"admin@ecomada.mg\",\n    \"motDePasse\": \"password123\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/auth/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "1. Rôle : Administrateur",
-			"description": "Ce dossier contient toutes les requêtes qui ne peuvent être exécutées que par un administrateur. Le jeton `admin_token` est automatiquement utilisé.",
-			"item": [
-				{
-					"name": "Gestion Utilisateurs",
-					"item": [
-						{
-							"name": "Lister tous les utilisateurs",
-							"description": "Récupère la liste de tous les utilisateurs enregistrés dans le système.",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/users",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"api",
-										"users"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Gestion Géo & Collecte",
-					"item": [
-						{
-							"name": "Créer une nouvelle ville",
-							"description": "Ajoute une nouvelle ville dans la base de données.",
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"nom\": \"Antsirabe\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/api/villes",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"api",
-										"villes"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				}
-			],
-			"auth": {
-				"type": "bearer",
-				"bearer": [
-					{
-						"key": "token",
-						"value": "{{admin_token}}",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"exec": [""]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Status code est 200/201 (Admin)\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});"
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "2. Rôle : Citoyen",
-			"description": "Ce dossier contient les requêtes pour les actions d'un citoyen. Le jeton `citoyen_token` est automatiquement utilisé.",
-			"item": [
-				{
-					"name": "Step 1 : Faire un dépôt (ENREGISTRE)",
-					"description": "Un citoyen dépose une certaine quantité de déchets dans un point de collecte. Le statut du dépôt est initialement `ENREGISTRE`.",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"poidsKg\": 10.0,\n    \"userId\": 2,\n    \"pointCollecteId\": 1,\n    \"typeDechetId\": 1\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/depots",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"depots"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Consulter mon impact",
-					"description": "Récupère les statistiques d'impact d'un citoyen (total des dépôts, points cumulés, etc.).",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/users/2/impact",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"users",
-								"2",
-								"impact"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "bearer",
-				"bearer": [
-					{
-						"key": "token",
-						"value": "{{citoyen_token}}",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Status code est 200/201 (Citoyen)\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});"
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "3. Rôle : Collecteur",
-			"description": "Ce dossier contient les requêtes pour les actions d'un collecteur. Le jeton `collecteur_token` est automatiquement utilisé.",
-			"item": [
-				{
-					"name": "Step 2 : Ramasser le déchet (COLLECTE)",
-					"description": "Un collecteur ramasse un dépôt et met à jour son statut à `COLLECTE`.",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/depots/4/status?statusId=2&collecteurId=1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"depots",
-								"4",
-								"status"
-							],
-							"query": [
-								{ "key": "statusId", "value": "2" },
-								{ "key": "collecteurId", "value": "1" }
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "bearer",
-				"bearer": [
-					{
-						"key": "token",
-						"value": "{{collecteur_token}}",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Status code est 200/201 (Collecteur)\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});"
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "4. Rôle : Recycleur",
-			"description": "Ce dossier contient les requêtes pour les actions d'un recycleur. Le jeton `recycleur_token` est automatiquement utilisé.",
-			"item": [
-				{
-					"name": "Step 4 : Transformer le déchet (VALORISE)",
-					"description": "Un recycleur traite un dépôt et met à jour son statut à `VALORISE`.",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/depots/4/status?statusId=4&recycleurId=1",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"depots",
-								"4",
-								"status"
-							],
-							"query": [
-								{ "key": "statusId", "value": "4" },
-								{ "key": "recycleurId", "value": "1" }
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "bearer",
-				"bearer": [
-					{
-						"key": "token",
-						"value": "{{recycleur_token}}",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"pm.test(\"Status code est 200/201 (Recycleur)\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});"
-						]
-					}
-				}
-			]
-		}
-	],
-	"variable": [
-		{ "key": "base_url", "value": "http://localhost:8090", "type": "string" },
-		{ "key": "admin_token", "value": "", "type": "string" },
-		{ "key": "citoyen_token", "value": "", "type": "string" },
-		{ "key": "collecteur_token", "value": "", "type": "string" },
-		{ "key": "recycleur_token", "value": "", "type": "string" }
-	]
+  "info": {
+    "_postman_id": "e4b2a1a1-7424-4b7b-848d-9d51b5c193a2",
+    "name": "EcoMada Collect API - Automatisé",
+    "description": {
+      "content": "Cette collection Postman permet de tester l'API EcoMada Collect de maniere exhaustive et automatisee.\\n\\n**Variables de collection**:\\n* `base_url`: L'URL de base de l'API (par defaut: `https://ecomada-collect-c8395a62a36e.herokuapp.com`).\\n* `admin_token`, `citoyen_token`, `collecteur_token`, `recycleur_token`: Jetons d'authentification pour chaque role, automatiquement remplis par la requete `0. Setup & Authentification`.\\n* Variables `admin_*_id` et `workflow_depot_id`: IDs techniques stockes automatiquement pour enchainer les tests CRUD et workflow.\\n\\n**Dossiers**:\\n* **0. Setup & Authentification**: Connexion automatisee des 4 roles.\\n* **1. Role : Administrateur**: CRUD complet sur toutes les ressources admin (READ-CREATE-UPDATE-DELETE-READ) + endpoints metier.\\n* **2. Role : Citoyen**: Creation de depot + consultation impact.\\n* **3. Role : Collecteur**: COLLECTE + TRANSFERE.\\n* **4. Role : Recycleur**: VALORISE + performance.",
+      "type": "text/markdown"
+    },
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Setup & Authentification",
+      "description": "Ce dossier contient les requetes pour initialiser l'environnement de test. La requete `Login All` recupere les jetons pour tous les roles et les stocke dans les variables de collection.",
+      "item": [
+        {
+          "name": "Login All (Automatisation Totale)",
+          "description": "Cette requete se connecte en tant qu'admin, citoyen, collecteur et recycleur, puis stocke leurs jetons JWT dans les variables de collection correspondantes (`admin_token`, `citoyen_token`, etc.).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const baseUrl = pm.collectionVariables.get(\"base_url\");",
+                  "",
+                  "function login(role, email) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + \"/api/auth/login\",",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: {",
+                  "            mode: 'raw',",
+                  "            raw: JSON.stringify({ email: email, motDePasse: 'password123' })",
+                  "        }",
+                  "    }, function (err, res) {",
+                  "        if (res && res.code === 200) {",
+                  "            pm.collectionVariables.set(role + \"_token\", res.json().token);",
+                  "            console.log(\"Token recupere pour : \" + role);",
+                  "        }",
+                  "    });",
+                  "}",
+                  "",
+                  "login(\"admin\", \"admin@ecomada.mg\");",
+                  "login(\"citoyen\", \"rakoto@ecomada.mg\");",
+                  "login(\"collecteur\", \"collecteur@ecomada.mg\");",
+                  "login(\"recycleur\", \"recycleur@ecomada.mg\");",
+                  "",
+                  "pm.test(\"Setup lance avec succes\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@ecomada.mg\",\n    \"motDePasse\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Rôle : Administrateur",
+      "description": "Couverture complete Admin: CRUD exhaustif (READ-CREATE-UPDATE-DELETE-READ) pour toutes les ressources admin, plus endpoints metier/aggregation.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{admin_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "CRUD Roles",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud roles.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Roles\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un role test (Admin).",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Roles\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_role_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_role_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"TEST_ROLE_{{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le role cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Roles\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/roles/{{admin_role_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles",
+                    "{{admin_role_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"TEST_ROLE_UPDATED_{{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le role cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Roles\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/roles/{{admin_role_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles",
+                    "{{admin_role_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le role supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Roles\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/roles/{{admin_role_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roles",
+                    "{{admin_role_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Utilisateurs",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud utilisateurs.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Utilisateurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un utilisateur test avec role CITOYEN.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Utilisateurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_user_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_user_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"User Test {{$timestamp}}\",\n    \"email\": \"user.test.{{$timestamp}}@ecomada.mg\",\n    \"motDePasse\": \"password123\",\n    \"roles\": [\n        \"CITOYEN\"\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour nom, email, mot de passe et role.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Utilisateurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users/{{admin_user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{admin_user_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"User Test Updated {{$timestamp}}\",\n    \"email\": \"user.updated.{{$timestamp}}@ecomada.mg\",\n    \"motDePasse\": \"password123\",\n    \"roles\": [\n        \"COLLECTEUR\"\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime l utilisateur cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Utilisateurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users/{{admin_user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{admin_user_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que l utilisateur supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Utilisateurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users/{{admin_user_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{admin_user_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Impact utilisateur demo",
+              "description": "Consulte l impact du citoyen de demo (id=2).",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Impact utilisateur OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users/2/impact",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2",
+                    "impact"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "ACTION - Attribuer recompense",
+              "description": "Attribue la recompense id=1 a l utilisateur id=2.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Attribution recompense OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/users/2/recompenses/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2",
+                    "recompenses",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Villes",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud villes.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Villes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/villes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "villes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree une ville test.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Villes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_ville_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_ville_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/villes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "villes"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Ville Test {{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour la ville creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Villes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/villes/{{admin_ville_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "villes",
+                    "{{admin_ville_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Ville Test Updated {{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime la ville creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Villes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/villes/{{admin_ville_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "villes",
+                    "{{admin_ville_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que la ville supprimee renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Villes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/villes/{{admin_ville_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "villes",
+                    "{{admin_ville_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Communes",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud communes.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Communes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/communes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree une commune rattachee a la ville id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Communes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_commune_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_commune_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/communes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communes"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Commune Test {{$timestamp}}\",\n    \"villeId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour la commune creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Communes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/communes/{{admin_commune_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communes",
+                    "{{admin_commune_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Commune Test Updated {{$timestamp}}\",\n    \"villeId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime la commune creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Communes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/communes/{{admin_commune_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communes",
+                    "{{admin_commune_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que la commune supprimee renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Communes\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/communes/{{admin_commune_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communes",
+                    "{{admin_commune_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Quartiers",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud quartiers.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Quartiers\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/quartiers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "quartiers"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un quartier rattache a la commune id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Quartiers\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_quartier_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_quartier_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/quartiers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "quartiers"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Quartier Test {{$timestamp}}\",\n    \"communeId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le quartier cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Quartiers\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/quartiers/{{admin_quartier_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "quartiers",
+                    "{{admin_quartier_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Quartier Test Updated {{$timestamp}}\",\n    \"communeId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le quartier cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Quartiers\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/quartiers/{{admin_quartier_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "quartiers",
+                    "{{admin_quartier_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le quartier supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Quartiers\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/quartiers/{{admin_quartier_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "quartiers",
+                    "{{admin_quartier_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Adresses",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud adresses.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Adresses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/adresses",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "adresses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree une adresse rattachee au quartier id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Adresses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_adresse_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_adresse_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/adresses",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "adresses"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"rue\": \"Rue Test {{$timestamp}}\",\n    \"quartierId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour l adresse creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Adresses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/adresses/{{admin_adresse_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "adresses",
+                    "{{admin_adresse_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"rue\": \"Rue Test Updated {{$timestamp}}\",\n    \"quartierId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime l adresse creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Adresses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/adresses/{{admin_adresse_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "adresses",
+                    "{{admin_adresse_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que l adresse supprimee renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Adresses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/adresses/{{admin_adresse_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "adresses",
+                    "{{admin_adresse_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Points Collecte",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud points collecte.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Points Collecte\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/points-collecte",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "points-collecte"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un point de collecte rattache a l adresse id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Points Collecte\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_point_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_point_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/points-collecte",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "points-collecte"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Point Test {{$timestamp}}\",\n    \"latitude\": -18.9,\n    \"longitude\": 47.5,\n    \"actif\": true,\n    \"adresseId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le point de collecte cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Points Collecte\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/points-collecte/{{admin_point_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "points-collecte",
+                    "{{admin_point_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Point Test Updated {{$timestamp}}\",\n    \"latitude\": -18.91,\n    \"longitude\": 47.51,\n    \"actif\": false,\n    \"adresseId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le point de collecte cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Points Collecte\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/points-collecte/{{admin_point_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "points-collecte",
+                    "{{admin_point_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le point de collecte supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Points Collecte\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/points-collecte/{{admin_point_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "points-collecte",
+                    "{{admin_point_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Stats point collecte demo",
+              "description": "Consulte les stats du point de collecte id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Stats point collecte OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/points-collecte/1/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "points-collecte",
+                    "1",
+                    "stats"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Types Dechets",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud types dechets.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Types Dechets\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/types-dechets",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "types-dechets"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un type de dechet test.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Types Dechets\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_type_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_type_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/types-dechets",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "types-dechets"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Type Test {{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le type de dechet cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Types Dechets\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/types-dechets/{{admin_type_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "types-dechets",
+                    "{{admin_type_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Type Test Updated {{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le type de dechet cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Types Dechets\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/types-dechets/{{admin_type_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "types-dechets",
+                    "{{admin_type_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le type de dechet supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Types Dechets\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/types-dechets/{{admin_type_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "types-dechets",
+                    "{{admin_type_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Statuts",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud statuts.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Statuts\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un statut test.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Statuts\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_status_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_status_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"STATUS_TEST_{{$timestamp}}\",\n    \"rang\": 99\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le statut cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Statuts\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/status/{{admin_status_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status",
+                    "{{admin_status_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"STATUS_TEST_UPDATED_{{$timestamp}}\",\n    \"rang\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le statut cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Statuts\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/status/{{admin_status_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status",
+                    "{{admin_status_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le statut supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Statuts\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/status/{{admin_status_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status",
+                    "{{admin_status_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Collecteurs",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud collecteurs.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Collecteurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/collecteurs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "collecteurs"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un collecteur test.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Collecteurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_collecteur_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_collecteur_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/collecteurs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "collecteurs"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Collecteur Test {{$timestamp}}\",\n    \"telephone\": \"0340000{{$timestamp}}\",\n    \"actif\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le collecteur cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Collecteurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/collecteurs/{{admin_collecteur_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "collecteurs",
+                    "{{admin_collecteur_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Collecteur Test Updated {{$timestamp}}\",\n    \"telephone\": \"0341111{{$timestamp}}\",\n    \"actif\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le collecteur cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Collecteurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/collecteurs/{{admin_collecteur_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "collecteurs",
+                    "{{admin_collecteur_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le collecteur supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Collecteurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/collecteurs/{{admin_collecteur_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "collecteurs",
+                    "{{admin_collecteur_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Recycleurs",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud recycleurs.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Recycleurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recycleurs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recycleurs"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un recycleur test.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Recycleurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_recycleur_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_recycleur_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recycleurs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recycleurs"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Recycleur Test {{$timestamp}}\",\n    \"adresse\": \"Adresse Recycleur Test {{$timestamp}}\",\n    \"actif\": true,\n    \"typeDechetNoms\": [\n        \"Plastique\"\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour le recycleur cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Recycleurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recycleurs/{{admin_recycleur_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recycleurs",
+                    "{{admin_recycleur_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Recycleur Test Updated {{$timestamp}}\",\n    \"adresse\": \"Adresse Recycleur Updated {{$timestamp}}\",\n    \"actif\": false,\n    \"typeDechetNoms\": [\n        \"Verre\"\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le recycleur cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Recycleurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recycleurs/{{admin_recycleur_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recycleurs",
+                    "{{admin_recycleur_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le recycleur supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Recycleurs\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recycleurs/{{admin_recycleur_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recycleurs",
+                    "{{admin_recycleur_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Performance recycleur demo",
+              "description": "Consulte la performance du recycleur id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Performance recycleur OK\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recycleurs/1/performance",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recycleurs",
+                    "1",
+                    "performance"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Recompenses",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale de crud recompenses.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Recompenses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recompenses",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recompenses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree une recompense test.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Recompenses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_recompense_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_recompense_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recompenses",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recompenses"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Recompense Test {{$timestamp}}\",\n    \"description\": \"Description test {{$timestamp}}\",\n    \"pointsRequis\": 999\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour",
+              "description": "Met a jour la recompense creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Recompenses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recompenses/{{admin_recompense_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recompenses",
+                    "{{admin_recompense_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nom\": \"Recompense Test Updated {{$timestamp}}\",\n    \"description\": \"Description updated {{$timestamp}}\",\n    \"pointsRequis\": 1111\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime la recompense creee.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Recompenses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recompenses/{{admin_recompense_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recompenses",
+                    "{{admin_recompense_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que la recompense supprimee renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Recompenses\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/recompenses/{{admin_recompense_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "recompenses",
+                    "{{admin_recompense_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "CRUD Depots",
+          "item": [
+            {
+              "name": "READ - Lister",
+              "description": "Lecture initiale des depots (paginee).",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ OK - CRUD Depots\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/depots?page=0&size=5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "depots"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE - Créer",
+              "description": "Cree un depot test (statut ENREGISTRE automatiquement).",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"CREATE OK - CRUD Depots\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "const createdId = data.id || (data.content && data.content.id);",
+                      "pm.collectionVariables.set('admin_depot_id', String(createdId));",
+                      "pm.test('ID stocke dans admin_depot_id', function () {",
+                      "    pm.expect(createdId).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/depots",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "depots"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"poidsKg\": 3.2,\n    \"userId\": 2,\n    \"pointCollecteId\": 1,\n    \"typeDechetId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE - Mettre à jour statut",
+              "description": "Passe le depot cree au statut COLLECTE avec collecteur id=1.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"UPDATE OK - CRUD Depots\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/depots/{{admin_depot_id}}/status?statusId=2&collecteurId=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "depots",
+                    "{{admin_depot_id}}",
+                    "status"
+                  ],
+                  "query": [
+                    {
+                      "key": "statusId",
+                      "value": "2"
+                    },
+                    {
+                      "key": "collecteurId",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - Supprimer",
+              "description": "Supprime le depot cree.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"DELETE OK - CRUD Depots\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/depots/{{admin_depot_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "depots",
+                    "{{admin_depot_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "READ - Vérifier suppression",
+              "description": "Verifie que le depot supprime renvoie 404.",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"READ 404 attendu - CRUD Depots\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/depots/{{admin_depot_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "depots",
+                    "{{admin_depot_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Rôle : Citoyen",
+      "description": "Actions dediees au citoyen: creation de depot et consultation de son impact.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{citoyen_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Step 1 : Faire un dépôt (ENREGISTRE)",
+          "description": "Le citoyen cree un depot et stocke l id pour le workflow multi-roles.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Depot citoyen cree\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "const createdId = data.id || (data.content && data.content.id);",
+                  "pm.collectionVariables.set('workflow_depot_id', String(createdId));",
+                  "pm.test('ID stocke dans workflow_depot_id', function () {",
+                  "    pm.expect(createdId).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"poidsKg\": 10,\n    \"userId\": 2,\n    \"pointCollecteId\": 1,\n    \"typeDechetId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 1b : Lire le dépôt créé",
+          "description": "Verifie la lecture du depot cree par le citoyen.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lecture depot citoyen OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots/{{workflow_depot_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots",
+                "{{workflow_depot_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulter mon impact",
+          "description": "Recupere les statistiques d impact du citoyen id=2.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Impact citoyen OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/2/impact",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "2",
+                "impact"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Rôle : Collecteur",
+      "description": "Actions dediees au collecteur: COLLECTE puis TRANSFERE sur le depot du workflow.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{collecteur_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Step 2 : Ramasser (COLLECTE)",
+          "description": "Passe le depot workflow en statut COLLECTE.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Collecte OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots/{{workflow_depot_id}}/status?statusId=2&collecteurId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots",
+                "{{workflow_depot_id}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "2"
+                },
+                {
+                  "key": "collecteurId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 3 : Livrer (TRANSFERE)",
+          "description": "Passe le depot workflow en statut TRANSFERE.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Transfert OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots/{{workflow_depot_id}}/status?statusId=3&collecteurId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots",
+                "{{workflow_depot_id}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "3"
+                },
+                {
+                  "key": "collecteurId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lire le dépôt workflow",
+          "description": "Verifie l etat du depot workflow apres actions collecteur.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lecture depot collecteur OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots/{{workflow_depot_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots",
+                "{{workflow_depot_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Rôle : Recycleur",
+      "description": "Actions dediees au recycleur: VALORISE + consultation performance.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{recycleur_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Step 4 : Transformer (VALORISE)",
+          "description": "Passe le depot workflow au statut VALORISE.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Valorisation OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots/{{workflow_depot_id}}/status?statusId=4&recycleurId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots",
+                "{{workflow_depot_id}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "4"
+                },
+                {
+                  "key": "recycleurId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lire le dépôt workflow",
+          "description": "Verifie l etat final du depot workflow.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lecture depot recycleur OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/depots/{{workflow_depot_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "depots",
+                "{{workflow_depot_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulter performance recycleur",
+          "description": "Consulte les stats de performance du recycleur id=1.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Performance recycleur OK\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/recycleurs/1/performance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recycleurs",
+                "1",
+                "performance"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://ecomada-collect-c8395a62a36e.herokuapp.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "citoyen_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "collecteur_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recycleur_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workflow_depot_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_role_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_ville_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_commune_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_quartier_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_adresse_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_point_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_type_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_status_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_collecteur_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_recycleur_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_recompense_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_depot_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
 }

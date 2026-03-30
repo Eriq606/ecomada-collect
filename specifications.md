@@ -61,6 +61,14 @@ Un citoyen dépose un déchet (`ENREGISTRE`). Un collecteur le ramasse (`COLLECT
 * **Partenaires (CRUD)** : `/api/collecteurs`, `/api/recycleurs`, `/api/recycleurs/{id}/performance`
 * **Récompenses (CRUD)** : `/api/recompenses`, `/api/users/{id}/recompenses/{recompenseId}` (Attribution)
 
+### Couverture Postman (référence projet)
+La collection `tests/api/postman/ecomada-collect.postman_collection.json` couvre :
+* **Admin** : séquence complète `READ -> CREATE -> UPDATE -> DELETE -> READ` sur toutes les ressources administrables.
+* **Citoyen** : création de dépôt + consultation impact utilisateur.
+* **Collecteur** : mises à jour de statut `COLLECTE` et `TRANSFERE`.
+* **Recycleur** : mise à jour `VALORISE` + endpoint de performance.
+* **Assertions** : vérification automatique des statuts `200/201/204/404` selon le type de requête.
+
 ## 13. Filtres recommandés
 Recherches par `villeId`, `statusId`, `typeDechetId`, `dateMin/Max`, et `actif` (pour les points et recycleurs).
 
