@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/depots")
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ public class DepotController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('COLLECTEUR') or hasRole('RECYCLEUR')")
     public EntityModel<DepotDto> updateStatus(@PathVariable Long id,
                                               @RequestParam Long statusId,
                                               @RequestParam(required = false) Long collecteurId,
@@ -57,6 +60,7 @@ public class DepotController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

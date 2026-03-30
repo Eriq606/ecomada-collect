@@ -12,6 +12,8 @@ import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/collecteurs")
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class CollecteurController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<CollecteurDto>> create(@RequestBody CollecteurDto dto) {
         CollecteurDto created = service.create(dto);
         return ResponseEntity.created(linkTo(methodOn(CollecteurController.class).getById(created.getId())).toUri())
@@ -43,12 +46,14 @@ public class CollecteurController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<CollecteurDto> update(@PathVariable Long id, @RequestBody CollecteurDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(CollecteurController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -12,6 +12,8 @@ import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/types-dechets")
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class TypeDechetController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<TypeDechetDto>> create(@RequestBody TypeDechetDto dto) {
         TypeDechetDto created = service.create(dto);
         return ResponseEntity.created(linkTo(methodOn(TypeDechetController.class).getById(created.getId())).toUri())
@@ -43,12 +46,14 @@ public class TypeDechetController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<TypeDechetDto> update(@PathVariable Long id, @RequestBody TypeDechetDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(TypeDechetController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -75,7 +75,17 @@ Les réponses JSON doivent inclure les liens `_links` vers les ressources liées
 * **Java 25**, **Gradle**, **Spring Boot 4.0.5**, **Spring Security (JWT)**, **Spring Data JPA**, **H2**, **Lombok**, **MapStruct**.
 
 ## 17. Structure technique recommandée
-Organisation par packages : `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `security`, `exception`.
+Organisation par **feature** (domaine métier) pour favoriser la modularité :
+* **auth** : Authentification et sécurité JWT.
+* **user / role** : Gestion des comptes et des permissions.
+* **geo** : Référentiel géographique et points de collecte.
+* **dechet** : Nomenclature des types de déchets et statuts.
+* **depot** : Cœur métier (cycle de vie du dépôt de déchet).
+* **collecteur / recycleur** : Gestion des partenaires.
+* **recompense** : Gamification et attribution des points.
+* **common** : Exceptions globales, mappers de base et utilitaires.
+
+Chaque package regroupe ses propres `Controller`, `Service`, `Repository`, `Entity`, `DTO` et `Mapper`.
 
 ## 18. Données de démonstration
 Villes : Antananarivo, Toamasina, Mahajanga, Toliara. Déchets : Plastique, Verre, Métal, Organique.
@@ -100,3 +110,10 @@ Conception d'une API REST sécurisée pour le pilotage de l'économie circulaire
 * **Ministère de l'Environnement (MEDD)** : Politiques nationales de gestion des déchets à Madagascar.
 * **Banque Mondiale & AFD** : Rapports sur le développement urbain et le projet PRODUIR à Madagascar.
 * **ODD 11 & 12** : Objectifs mondiaux pour les villes durables et la consommation responsable.
+## 25. Initialisation des données
+Le projet utilise une approche de **seeding programmatique** via `CommandLineRunner` (`DataInitializer.java`) plutôt que des scripts SQL statiques (`data.sql`). 
+Cette approche permet :
+* **Gestion cohérente des relations** : Les liens entre entités (Utilisateurs <-> Rôles, Récompenses, etc.) sont gérés via JPA, garantissant l'intégrité référentielle.
+* **Sécurité** : Les mots de passe des utilisateurs de test sont hachés dynamiquement avec `BCrypt` au démarrage, permettant une authentification immédiate via Postman.
+* **Idempotence** : Le `DataInitializer` vérifie l'existence des données avant chaque insertion pour éviter les doublons lors des redémarrages de l'application.
+* **Données de démonstration complètes** : Initialise un jeu de données complet (Villes, Acteurs, Dépôts types) pour faciliter les tests bout-en-bout dès le premier lancement.

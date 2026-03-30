@@ -13,6 +13,8 @@ import java.util.Map;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/points-collecte")
 @RequiredArgsConstructor
@@ -42,6 +44,7 @@ public class PointCollecteController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<PointCollecteDto>> create(@RequestBody PointCollecteDto dto) {
         PointCollecteDto c = service.create(dto);
         return ResponseEntity.created(linkTo(methodOn(PointCollecteController.class).getById(c.getId())).toUri())
@@ -49,12 +52,14 @@ public class PointCollecteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<PointCollecteDto> update(@PathVariable Long id, @RequestBody PointCollecteDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(PointCollecteController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

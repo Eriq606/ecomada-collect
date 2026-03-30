@@ -14,6 +14,8 @@ import java.util.Map;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -42,19 +44,30 @@ public class UserController {
         return ResponseEntity.ok(service.getImpact(id));
     }
 
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public EntityModel<UserDto> create(@RequestBody UserDto dto) {
+        UserDto created = service.create(dto);
+        return EntityModel.of(created,
+                linkTo(methodOn(UserController.class).getById(created.getId())).withSelfRel());
+    }
+
     @PostMapping("/{userId}/recompenses/{recompenseId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> attribuerRecompense(@PathVariable Long userId, @PathVariable Long recompenseId) {
         recompenseService.attribuer(userId, recompenseId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<UserDto> update(@PathVariable Long id, @RequestBody UserDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(UserController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -6,6 +6,7 @@ import mg.ecomada.collect.depot.Depot;
 import mg.ecomada.collect.depot.DepotRepository;
 import mg.ecomada.collect.recompense.Recompense;
 import mg.ecomada.collect.recompense.RecompenseRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper mapper;
     private final DepotRepository depotRepository;
     private final RecompenseRepository recompenseRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<UserDto> findAll() {
@@ -33,11 +35,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto create(UserDto dto) {
+        User entity = mapper.toEntity(dto);
+        entity.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
+        return mapper.toDto(repository.save(entity));
+    }
+
+    @Override
     public UserDto update(Long id, UserDto dto) {
         User entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         entity.setNom(dto.getNom());
         entity.setEmail(dto.getEmail());
+        if (dto.getMotDePasse() != null && !dto.getMotDePasse().isEmpty()) {
+            entity.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
+        }
         return mapper.toDto(repository.save(entity));
     }
 

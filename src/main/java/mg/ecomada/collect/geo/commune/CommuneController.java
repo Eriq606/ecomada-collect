@@ -12,6 +12,8 @@ import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/communes")
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class CommuneController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<CommuneDto>> create(@RequestBody CommuneDto dto) {
         CommuneDto c = service.create(dto);
         return ResponseEntity.created(linkTo(methodOn(CommuneController.class).getById(c.getId())).toUri())
@@ -43,12 +46,14 @@ public class CommuneController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<CommuneDto> update(@PathVariable Long id, @RequestBody CommuneDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(CommuneController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -28,13 +28,22 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Cet email est deja utilise");
         }
-        Role citoyenRole = roleRepository.findByNom("CITOYEN")
-                .orElseThrow(() -> new BusinessException("Role CITOYEN introuvable"));
+        
+        String tempRoleName = "CITOYEN";
+        if (request.getEmail().endsWith("@admin.mg")) tempRoleName = "ADMIN";
+        else if (request.getEmail().endsWith("@collecteur.mg")) tempRoleName = "COLLECTEUR";
+        else if (request.getEmail().endsWith("@recycleur.mg")) tempRoleName = "RECYCLEUR";
+        
+        final String finalRoleName = tempRoleName;
+
+        Role role = roleRepository.findByNom(finalRoleName)
+                .orElseThrow(() -> new BusinessException("Role " + finalRoleName + " introuvable"));
+        
         User user = User.builder()
                 .nom(request.getNom())
                 .email(request.getEmail())
                 .motDePasse(passwordEncoder.encode(request.getMotDePasse()))
-                .roles(Set.of(citoyenRole))
+                .roles(Set.of(role))
                 .build();
         userRepository.save(user);
         Authentication auth = authenticationManager.authenticate(

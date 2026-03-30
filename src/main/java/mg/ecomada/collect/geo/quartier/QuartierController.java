@@ -12,6 +12,8 @@ import java.util.List;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/quartiers")
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class QuartierController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<QuartierDto>> create(@RequestBody QuartierDto dto) {
         QuartierDto c = service.create(dto);
         return ResponseEntity.created(linkTo(methodOn(QuartierController.class).getById(c.getId())).toUri())
@@ -43,12 +46,14 @@ public class QuartierController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<QuartierDto> update(@PathVariable Long id, @RequestBody QuartierDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(QuartierController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

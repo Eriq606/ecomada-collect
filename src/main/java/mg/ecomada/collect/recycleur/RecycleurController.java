@@ -13,6 +13,8 @@ import java.util.Map;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/recycleurs")
 @RequiredArgsConstructor
@@ -42,6 +44,7 @@ public class RecycleurController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EntityModel<RecycleurDto>> create(@RequestBody RecycleurDto dto) {
         RecycleurDto c = service.create(dto);
         return ResponseEntity.created(linkTo(methodOn(RecycleurController.class).getById(c.getId())).toUri())
@@ -49,12 +52,14 @@ public class RecycleurController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EntityModel<RecycleurDto> update(@PathVariable Long id, @RequestBody RecycleurDto dto) {
         return EntityModel.of(service.update(id, dto),
                 linkTo(methodOn(RecycleurController.class).getById(id)).withSelfRel());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -1,0 +1,713 @@
+{
+	"info": {
+		"_postman_id": "e4b2a1a1-7424-4b7b-848d-9d51b5c193a2",
+		"name": "EcoMada Collect API",
+		"description": "API pour la gestion intelligente des déchets à Madagascar",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentification",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.environment.set(\"token\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@ecomada.mg\",\n    \"motDePasse\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Rakoto - Citoyen)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.environment.set(\"token\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rakoto@ecomada.mg\",\n    \"motDePasse\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"Nouvel Utilisateur\",\n    \"email\": \"nouveau@ecomada.mg\",\n    \"motDePasse\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Administration (ADMIN Only)",
+			"item": [
+				{
+					"name": "Gestion Utilisateurs",
+					"item": [
+						{
+							"name": "Lister les utilisateurs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Créer un utilisateur",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"Test User\",\n    \"email\": \"test@ecomada.mg\",\n    \"motDePasse\": \"password123\",\n    \"role\": \"CITOYEN\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Voir utilisateur par ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modifier un utilisateur",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"User Modifié\",\n    \"email\": \"mod@ecomada.mg\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/users/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Supprimer un utilisateur",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"2"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Gestion Géo (Villes/Communes/Points)",
+					"item": [
+						{
+							"name": "Villes - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/villes",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"villes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Villes - Créer",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"Antsirabe\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/villes",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"villes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Points Collecte - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/points-collecte",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"points-collecte"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Points Collecte - Créer",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"Nouveau Point\",\n    \"latitude\": -18.0,\n    \"longitude\": 47.0,\n    \"adresseId\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/points-collecte",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"points-collecte"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Gestion Déchets (Types/Statuts)",
+					"item": [
+						{
+							"name": "Types - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/types-dechets",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"types-dechets"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Types - Créer",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"Electronique\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/types-dechets",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"types-dechets"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Statuts - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Statuts - Modifier",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"STATUT_TEST\",\n    \"rang\": 10\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/status/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"status",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Gestion Acteurs (Collecteurs/Recycleurs)",
+					"item": [
+						{
+							"name": "Collecteurs - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/collecteurs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"collecteurs"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Recycleurs - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/recycleurs",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"recycleurs"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Gestion Récompenses",
+					"item": [
+						{
+							"name": "Récompenses - Lister",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/recompenses",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"recompenses"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Récompenses - Créer",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nom\": \"Super Recycleur\",\n    \"description\": \"Pour les plus actifs\",\n    \"pointsRequis\": 2000\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/recompenses",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"recompenses"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Workflow Citoyen",
+			"item": [
+				{
+					"name": "Voir les points de collecte",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/points-collecte?actif=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"points-collecte"
+							],
+							"query": [
+								{
+									"key": "actif",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Faire un dépôt",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"poidsKg\": 5.0,\n    \"userId\": 2,\n    \"pointCollecteId\": 1,\n    \"typeDechetId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/depots",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"depots"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consulter mon impact",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/2/impact",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"2",
+								"impact"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Workflows Collecte & Valorisation",
+			"item": [
+				{
+					"name": "Marquer comme COLLECTE",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/depots/1/status?statusId=2&collecteurId=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"depots",
+								"1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "statusId",
+									"value": "2"
+								},
+								{
+									"key": "collecteurId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Marquer comme VALORISE",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/depots/1/status?statusId=4&recycleurId=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"depots",
+								"1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "statusId",
+									"value": "4"
+								},
+								{
+									"key": "recycleurId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8090",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
